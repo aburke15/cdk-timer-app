@@ -10,7 +10,7 @@ export class GitHubTimer extends Construct {
   constructor(scope: Construct, id: string, props: GitHubTimerProps) {
     super(scope, id);
 
-    const handler = new Function(this, "GitHubTimerLambda", {
+    const handler = new Function(this, "GitHubTimerHandler", {
       runtime: Runtime.NODEJS_14_X,
       code: Code.fromAsset("lambda"),
       handler: "github-timer.handler",
