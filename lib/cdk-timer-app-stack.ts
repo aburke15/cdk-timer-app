@@ -14,15 +14,15 @@ export class CdkTimerAppStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    // const gitHubRepoTable = new Table(this, "GitHubRepoTable", {
-    //   partitionKey: { name: "project_id", type: AttributeType.NUMBER },
-    //   billingMode: BillingMode.PAY_PER_REQUEST,
-    //   removalPolicy: RemovalPolicy.DESTROY,
-    // });
+    const gitHubRepoTable = new Table(this, "GitHubRepoTable", {
+      partitionKey: { name: "id", type: AttributeType.NUMBER },
+      billingMode: BillingMode.PAY_PER_REQUEST,
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
 
     new GitHubRepoInsert(this, "GitHubRepoInsert", {
       memoryAndTimeout: memoryAndTimeout,
-      //table: gitHubRepoTable,
+      table: gitHubRepoTable,
     });
 
     // new GitHubRepoRead(this, "GitHubRepoRead", {

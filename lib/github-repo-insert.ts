@@ -7,7 +7,7 @@ import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 
 export interface GitHubRepoInsertProps {
   memoryAndTimeout: MemoryAndTimout;
-  //table: Table;
+  table: Table;
 }
 
 export class GitHubRepoInsert extends Construct {
@@ -34,6 +34,7 @@ export class GitHubRepoInsert extends Construct {
       environment: {
         GITHUB_USER: gitHubUserSecret.secretValue.unsafeUnwrap().toString(),
         GITHUB_PAT: gitHubPatSecret.secretValue.unsafeUnwrap().toString(),
+        TABLE_NAME: props.table.tableName,
       },
     });
 
@@ -42,6 +43,6 @@ export class GitHubRepoInsert extends Construct {
     });
 
     // create a timer event
-    //props.table.grantWriteData(handler);
+    props.table.grantWriteData(handler);
   }
 }
