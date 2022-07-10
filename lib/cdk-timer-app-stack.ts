@@ -15,7 +15,7 @@ export class CdkTimerAppStack extends Stack {
     super(scope, id, props);
 
     const gitHubRepoTable = new Table(this, "GitHubRepoTable", {
-      partitionKey: { name: "project_id", type: AttributeType.NUMBER },
+      partitionKey: { name: "id", type: AttributeType.NUMBER },
       billingMode: BillingMode.PAY_PER_REQUEST,
       removalPolicy: RemovalPolicy.DESTROY,
     });
@@ -25,9 +25,9 @@ export class CdkTimerAppStack extends Stack {
       table: gitHubRepoTable,
     });
 
-    new GitHubRepoRead(this, "GitHubRepoRead", {
-      memoryAndTimeout: memoryAndTimeout,
-      table: gitHubRepoTable,
-    });
+    // new GitHubRepoRead(this, "GitHubRepoRead", {
+    //   memoryAndTimeout: memoryAndTimeout,
+    //   table: gitHubRepoTable,
+    // });
   }
 }
