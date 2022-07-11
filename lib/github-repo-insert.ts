@@ -4,6 +4,8 @@ import { LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
 import { MemoryAndTimout } from "./utils/types";
 import { Table } from "aws-cdk-lib/aws-dynamodb";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
+import { Rule, Schedule } from "aws-cdk-lib/aws-events";
+import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
 
 export interface GitHubRepoInsertProps {
   memoryAndTimeout: MemoryAndTimout;
@@ -25,6 +27,15 @@ export class GitHubRepoInsert extends Construct {
       "GitHubPat"
     );
 
+    const eventRule = new Rule(this, "GitHubRepoInsertScheduleRule", {
+      schedule: Schedule.cron({
+        minute: "*/5",
+        hour: "*",
+        month: "*",
+        weekDay: "*",
+      }),
+    });
+
     const handler = new Function(this, "GitHubRepoInsertHandler", {
       memorySize: props.memoryAndTimeout.memorySize,
       timeout: props.memoryAndTimeout.timeout,
@@ -38,10 +49,7 @@ export class GitHubRepoInsert extends Construct {
       },
     });
 
+    eventRule.addTarget(new LambdaFunction(handler));
     props.table.grantWriteData(handler);
-
-    new LambdaRestApi(this, "GitHubRepoInsertEndpoint", {
-      handler: handler,
-    });
   }
 }

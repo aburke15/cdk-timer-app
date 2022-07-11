@@ -54,9 +54,11 @@ const parseGitHubProjects = (repos) => {
         id: { S: repoId },
         name: { S: repo.name },
         createdAt: { S: repo.created_at },
-        description: { S: repo.description },
+        description: {
+          S: !repo.description ? "N/A" : repo.description,
+        },
         htmlUrl: { S: repo.html_url },
-        language: { S: repo.language },
+        language: { S: !repo.language ? "N/A" : repo.language },
       },
     };
     projects.push(project);
