@@ -38,11 +38,10 @@ export class GitHubRepoInsert extends Construct {
       },
     });
 
+    props.table.grantWriteData(handler);
+
     new LambdaRestApi(this, "GitHubRepoInsertEndpoint", {
       handler: handler,
     });
-
-    // create a timer event
-    props.table.grantWriteData(handler);
   }
 }
