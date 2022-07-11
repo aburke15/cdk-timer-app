@@ -1,109 +1,101 @@
 const https = require("https");
 const AWS = require("aws-sdk");
 AWS.config.update({ region: "us-west-2" });
+const apiVersion = { apiVersion: "2012-08-10" };
+let ddb = new AWS.DynamoDB(apiVersion);
 
-let ddb = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
-
-exports.handler = async (event, context, callback) => {
+exports.handler = async (event) => {
   try {
     if (!ddb) {
-      ddb = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
+      ddb = new AWS.DynamoDB(apiVersion);
     }
 
-    const projectCount = insertProjectsIntoDynamoDB(ddb);
+    const repos = await getRequest();
+    const { projectCount, projects } = parseGitHubProjects(repos);
+    insertProjectsIntoDynamoDB(ddb, projects);
+
     return {
       statusCode: 200,
       headers: { "Content-Type": "text/plain" },
       body: `Inserted ${projectCount} projects into DynamoDB`,
     };
   } catch (error) {
-    console.error("Error occurred in GitHubRepoInsert Lambda: ", error);
+    console.error("Error occurred in GitHubRepoInsert Lambda:", error);
+    return {
+      statusCode: 400,
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify(error, null, 2),
+    };
   }
 };
 
-const insertProjectsIntoDynamoDB = (ddb) => {
+const insertProjectsIntoDynamoDB = (ddb, projects) => {
+  projects.forEach((params) => {
+    ddb.putItem(params, (err, data) => {
+      if (err) {
+        console.error("Error occurred in DynamoDB:", err);
+      } else {
+        console.log("Successfully inserted project into DynamoDB");
+      }
+    });
+  });
+};
+
+const parseGitHubProjects = (repos) => {
   let count = 0;
   const projects = [];
   const tableName = process.env.TABLE_NAME;
 
-  getReposFromGitHub().then((repos) => {
-    repos.foreach((repo) => {
-      const project = {
-        TableName: tableName,
-        Item: {
-          id: { N: repo.id },
-          name: { S: repo.name },
-          createdAt: { S: repo.created_at },
-          description: { S: repo.description },
-          htmlUrl: { S: repo.html_url },
-          language: { S: repo.language },
-        },
-      };
-      projects.push(project);
-    });
-
-    projects.forEach((project) => {
-      if (count === 0) {
-        console.log(project);
-      }
-      count++;
-      ddb.putItem(project, (error, data) => {
-        if (error) {
-          console.error("Error:", error);
-        } else {
-          console.log("Success:", data);
-        }
-      });
-    });
+  repos.forEach((repo) => {
+    const repoId = repo.id.toString();
+    const project = {
+      TableName: tableName,
+      Item: {
+        id: { S: repoId },
+        name: { S: repo.name },
+        createdAt: { S: repo.created_at },
+        description: { S: repo.description },
+        htmlUrl: { S: repo.html_url },
+        language: { S: repo.language },
+      },
+    };
+    projects.push(project);
+    count++;
   });
 
-  return count;
+  return {
+    projectCount: count,
+    projects: projects,
+  };
 };
 
-const getReposFromGitHub = () => {
-  const username = process.env.GITHUB_USER;
-  const pat = process.env.GITHUB_PAT;
+const getRequest = () => {
+  const url = `https://api.github.com/users/${process.env.GITHUB_USER}/repos?per_page=100`;
   const options = {
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${pat}`,
-      "User-Agent": "request",
+      Authorization: `token ${process.env.GITHUB_PAT}`,
+      "User-Agent": "github-repo-insert-lambda",
     },
   };
 
   return new Promise((resolve, reject) => {
-    const req = https.request(
-      `https://api.github.com/users/${username}/repos`,
-      options,
-      (res) => {
-        if (res.statusCode < 200 || res.statusCode > 299) {
-          return reject(
-            new Error(
-              `Failed to load page, status code: ${res.statusCode}. Message: ${res.statusMessage}`
-            )
-          );
+    const req = https.get(url, options, (res) => {
+      let data = "";
+      res.on("data", (chunck) => {
+        data += chunck;
+      });
+      res.on("end", () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (error) {
+          reject(new Error(error));
         }
-
-        let data = "";
-        res.on("data", (cunck) => {
-          data += cunck;
-        });
-        res.on("end", () => {
-          try {
-            resolve(JSON.parse(data));
-          } catch (error) {
-            console.error("Error parsing JSON: ", error);
-            reject(error);
-          }
-        });
-      }
-    );
-
-    req.on("error", (error) => {
-      console.error("Error occurred in GitHubRepoInsert Lambda: ", error);
-      reject(error);
+      });
     });
 
-    req.end();
+    req.on("error", (error) => {
+      reject(new Error(error));
+    });
   });
 };

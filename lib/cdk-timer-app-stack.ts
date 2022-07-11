@@ -15,7 +15,7 @@ export class CdkTimerAppStack extends Stack {
     super(scope, id, props);
 
     const gitHubRepoTable = new Table(this, "GitHubRepoTable", {
-      partitionKey: { name: "id", type: AttributeType.NUMBER },
+      partitionKey: { name: "id", type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
       removalPolicy: RemovalPolicy.DESTROY,
     });
