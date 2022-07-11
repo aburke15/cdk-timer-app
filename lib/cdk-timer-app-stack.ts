@@ -6,8 +6,8 @@ import { GitHubRepoRead } from "./github-repo-read";
 import { MemoryAndTimout } from "./utils/types";
 
 const memoryAndTimeout: MemoryAndTimout = {
-  memorySize: 1024,
-  timeout: Duration.minutes(2),
+  memorySize: 768,
+  timeout: Duration.seconds(30),
 } as const;
 
 export class CdkTimerAppStack extends Stack {
