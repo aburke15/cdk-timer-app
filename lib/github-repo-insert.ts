@@ -3,31 +3,22 @@ import { Code, Function, Runtime } from "aws-cdk-lib/aws-lambda";
 import { LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
 import { MemoryAndTimout } from "./utils/types";
 import { Table } from "aws-cdk-lib/aws-dynamodb";
-import { Secret } from "aws-cdk-lib/aws-secretsmanager";
+import { ISecret, Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { Rule, Schedule } from "aws-cdk-lib/aws-events";
 import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
 
 export interface GitHubRepoInsertProps {
   memoryAndTimeout: MemoryAndTimout;
-  table: Table;
+  gitHubRepoTable: Table;
+  gitHubUserSecret: ISecret;
+  gitHubPatSecret: ISecret;
 }
 
 export class GitHubRepoInsert extends Construct {
   constructor(scope: Construct, id: string, props: GitHubRepoInsertProps) {
     super(scope, id);
 
-    const gitHubUserSecret = Secret.fromSecretNameV2(
-      this,
-      "GitHubUserSecret",
-      "GitHubUser"
-    );
-    const gitHubPatSecret = Secret.fromSecretNameV2(
-      this,
-      "GitHubPatSecret",
-      "GitHubPat"
-    );
-
-    const eventRule = new Rule(this, "GitHubRepoInsertScheduleRule", {
+    const eventRule = new Rule(this, "GitHubRepoInsertEventRule", {
       schedule: Schedule.cron({
         minute: "*/5",
         hour: "*",
@@ -43,13 +34,17 @@ export class GitHubRepoInsert extends Construct {
       code: Code.fromAsset("lambda"),
       handler: "github-repo-insert.handler",
       environment: {
-        GITHUB_USER: gitHubUserSecret.secretValue.unsafeUnwrap().toString(),
-        GITHUB_PAT: gitHubPatSecret.secretValue.unsafeUnwrap().toString(),
-        TABLE_NAME: props.table.tableName,
+        GITHUB_USER: props.gitHubUserSecret.secretValue
+          .unsafeUnwrap()
+          .toString(),
+        GITHUB_PAT: props.gitHubPatSecret.secretValue
+          .unsafeUnwrap()
+          .toString(),
+        TABLE_NAME: props.gitHubRepoTable.tableName,
       },
     });
 
     eventRule.addTarget(new LambdaFunction(handler));
-    props.table.grantWriteData(handler);
+    props.gitHubRepoTable.grantWriteData(handler);
   }
 }
