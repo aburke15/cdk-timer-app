@@ -1,20 +1,24 @@
-const AWS = require("aws-sdk");
-AWS.config.update({ region: "us-west-2" });
-const apiVersion = { apiVersion: "2012-08-10" };
-let ddb = new AWS.DynamoDB(apiVersion);
+import AWS = require("aws-sdk");
+import { DynamoDB } from "aws-sdk";
+import { ScanInput } from "aws-sdk/clients/dynamodb";
 
-exports.handler = async (event) => {
+AWS.config.update({ region: "us-west-2" });
+
+const apiVersion = { apiVersion: "2012-08-10" };
+let ddb = new DynamoDB(apiVersion);
+
+exports.handler = async (event: any) => {
   try {
     if (!ddb) {
-      ddb = new AWS.DynamoDB(apiVersion);
+      ddb = new DynamoDB(apiVersion);
     }
 
-    const data = await getProjectsFromDynamoDB(ddb);
+    //const data = await getProjectsFromDynamoDB(ddb);
 
     return {
       statusCode: 200,
       headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify(data.Items, null, 2),
+      body: JSON.stringify({ message: "hello, world!" }, null, 2),
     };
   } catch (error) {
     console.error("Error occurred in GitHubRepoRead Lambda:", error);
@@ -27,9 +31,10 @@ exports.handler = async (event) => {
   }
 };
 
-const getProjectsFromDynamoDB = (ddb) => {
-  const params = {
-    TableName: process.env.TABLE_NAME,
+const getProjectsFromDynamoDB = (ddb: DynamoDB) => {
+  const tableName = process.env.TABLE_NAME ?? "GitHubRepoTable";
+  const params: ScanInput = {
+    TableName: tableName,
     ProjectionExpression:
       "id, name, createdAt, description, htmlUrl, language",
   };

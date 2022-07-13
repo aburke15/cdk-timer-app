@@ -6,6 +6,7 @@ import { Table } from "aws-cdk-lib/aws-dynamodb";
 import { ISecret, Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { Rule, Schedule } from "aws-cdk-lib/aws-events";
 import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 
 export interface GitHubRepoInsertProps {
   memoryAndTimeout: MemoryAndTimout;
