@@ -8,9 +8,8 @@ import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { Construct } from "constructs";
 import { GitHubRepoInsert } from "./github-repo-insert";
 import { GitHubRepoRead } from "./github-repo-read";
-import { MemoryAndTimout } from "./utils/types";
 
-const memoryAndTimeout: MemoryAndTimout = {
+const memoryAndTimeout = {
   memorySize: 768,
   timeout: Duration.minutes(2),
 } as const;
@@ -38,12 +37,12 @@ export class CdkTimerAppStack extends Stack {
       "GitHubPat"
     );
 
-    new GitHubRepoInsert(this, "GitHubRepoInsert", {
-      memoryAndTimeout,
-      gitHubRepoTable,
-      gitHubUserSecret,
-      gitHubPatSecret,
-    });
+    // new GitHubRepoInsert(this, "GitHubRepoInsert", {
+    //   memoryAndTimeout,
+    //   gitHubRepoTable,
+    //   gitHubUserSecret,
+    //   gitHubPatSecret,
+    // });
 
     new GitHubRepoRead(this, "GitHubRepoRead", {
       memoryAndTimeout,
