@@ -1,6 +1,5 @@
 import { Construct } from "constructs";
-import { Code, Function, Runtime } from "aws-cdk-lib/aws-lambda";
-import { LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
+import { Code, Runtime } from "aws-cdk-lib/aws-lambda";
 import { MemoryAndTimout } from "./utils/types";
 import { Table } from "aws-cdk-lib/aws-dynamodb";
 import { ISecret, Secret } from "aws-cdk-lib/aws-secretsmanager";
@@ -28,12 +27,16 @@ export class GitHubRepoInsert extends Construct {
       }),
     });
 
-    const handler = new Function(this, "GitHubRepoInsertHandler", {
+    const handler = new NodejsFunction(this, "GitHubRepoInsertHandler", {
       memorySize: props.memoryAndTimeout.memorySize,
       timeout: props.memoryAndTimeout.timeout,
       runtime: Runtime.NODEJS_14_X,
-      code: Code.fromAsset("lambda"),
-      handler: "github-repo-insert.handler",
+      handler: "handler",
+      entry: Code.fromAsset("lambda").path + "/github-repo-insert.ts",
+      bundling: {
+        minify: true,
+        externalModules: ["aws-sdk"],
+      },
       environment: {
         GITHUB_USER: props.gitHubUserSecret.secretValue
           .unsafeUnwrap()

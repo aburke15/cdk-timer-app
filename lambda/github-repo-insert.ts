@@ -1,13 +1,17 @@
-const https = require("https");
-const AWS = require("aws-sdk");
-AWS.config.update({ region: "us-west-2" });
-const apiVersion = { apiVersion: "2012-08-10" };
-let ddb = new AWS.DynamoDB(apiVersion);
+import AWS = require("aws-sdk");
+import { DynamoDB } from "aws-sdk";
+import { PutItemInput } from "aws-sdk/clients/dynamodb";
+import https = require("https");
 
-exports.handler = async (event) => {
+AWS.config.update({ region: "us-west-2" });
+
+const apiVersion = { apiVersion: "2012-08-10" };
+let ddb = new DynamoDB(apiVersion);
+
+exports.handler = async (event: any) => {
   try {
     if (!ddb) {
-      ddb = new AWS.DynamoDB(apiVersion);
+      ddb = new DynamoDB(apiVersion);
     }
 
     const repos = await getRequest();
@@ -29,37 +33,56 @@ exports.handler = async (event) => {
   }
 };
 
-const insertProjectsIntoDynamoDB = (ddb, projects) => {
-  projects.forEach((params) => {
+const insertProjectsIntoDynamoDB = (
+  ddb: DynamoDB,
+  projects: GitHubProject[]
+): void => {
+  const tableName = process.env.TABLE_NAME ?? "GitHubRepoTable";
+  projects.forEach((project) => {
+    let params: PutItemInput = {
+      TableName: tableName,
+      Item: {
+        id: { S: project.id },
+        name: { S: project.name },
+        createdAt: { S: project.createdAt },
+        description: { S: project.description },
+        htmlUrl: { S: project.htmlUrl },
+        language: { S: project.language },
+      },
+    };
+
     ddb.putItem(params, (err, data) => {
       if (err) {
         console.error("Error occurred in DynamoDB:", err);
       } else {
-        console.log("Successfully inserted project into DynamoDB");
+        console.info("Successfully inserted project into DynamoDB");
       }
     });
   });
 };
 
-const parseGitHubProjects = (repos) => {
+interface GitHubProject {
+  id: string;
+  name: string;
+  createdAt: string;
+  description: string;
+  htmlUrl: string;
+  language: string;
+}
+
+const parseGitHubProjects = (repos: any[]) => {
   let count = 0;
-  const projects = [];
-  const tableName = process.env.TABLE_NAME;
+  const projects: GitHubProject[] = [];
 
   repos.forEach((repo) => {
     const repoId = repo.id.toString();
-    const project = {
-      TableName: tableName,
-      Item: {
-        id: { S: repoId },
-        name: { S: repo.name },
-        createdAt: { S: repo.created_at },
-        description: {
-          S: !repo.description ? "N/A" : repo.description,
-        },
-        htmlUrl: { S: repo.html_url },
-        language: { S: !repo.language ? "N/A" : repo.language },
-      },
+    const project: GitHubProject = {
+      id: repoId,
+      name: repo.name,
+      createdAt: repo.created_at,
+      description: repo.description ?? "N/A",
+      htmlUrl: repo.html_url,
+      language: repo.language ?? "N/A",
     };
     projects.push(project);
     count++;
@@ -71,9 +94,9 @@ const parseGitHubProjects = (repos) => {
   };
 };
 
-const getRequest = () => {
+const getRequest = (): Promise<any[]> => {
   const url = `https://api.github.com/users/${process.env.GITHUB_USER}/repos?per_page=100`;
-  const options = {
+  const options: https.RequestOptions = {
     headers: {
       "Content-Type": "application/json",
       Authorization: `token ${process.env.GITHUB_PAT}`,
@@ -90,13 +113,13 @@ const getRequest = () => {
       res.on("end", () => {
         try {
           resolve(JSON.parse(data));
-        } catch (error) {
+        } catch (error: any) {
           reject(new Error(error));
         }
       });
     });
 
-    req.on("error", (error) => {
+    req.on("error", (error: any) => {
       reject(new Error(error));
     });
   });
