@@ -13,12 +13,20 @@ exports.handler = async (event: any) => {
       ddb = new DynamoDB(apiVersion);
     }
 
-    //const data = await getProjectsFromDynamoDB(ddb);
+    const data = await getProjectsFromDynamoDB(ddb);
+    const responseStatusCode = data.$response.httpResponse.statusCode;
+    if (responseStatusCode < 200 || responseStatusCode > 299) {
+      return {
+        statusCode: responseStatusCode,
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify(data.Items, null, 2),
+      };
+    }
 
     return {
       statusCode: 200,
       headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify({ message: "hello, world!" }, null, 2),
+      body: JSON.stringify(data.Items, null, 2),
     };
   } catch (error) {
     console.error("Error occurred in GitHubRepoRead Lambda:", error);
@@ -31,12 +39,14 @@ exports.handler = async (event: any) => {
   }
 };
 
+const parseGitHubProjects = (itemList: DynamoDB.ItemList) => {
+  itemList.forEach((item) => {});
+};
+
 const getProjectsFromDynamoDB = (ddb: DynamoDB) => {
   const tableName = process.env.TABLE_NAME ?? "GitHubRepoTable";
   const params: ScanInput = {
     TableName: tableName,
-    ProjectionExpression:
-      "id, name, createdAt, description, htmlUrl, language",
   };
 
   return ddb.scan(params).promise();

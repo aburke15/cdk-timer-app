@@ -1,8 +1,10 @@
+import { Size } from "aws-cdk-lib";
 import { LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
 import { Table } from "aws-cdk-lib/aws-dynamodb";
 import { Code, Function, Runtime } from "aws-cdk-lib/aws-lambda";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { ISecret } from "aws-cdk-lib/aws-secretsmanager";
+import { MemoryDB } from "aws-sdk";
 import { Construct } from "constructs";
 import { MemoryAndTimout } from "./utils/types";
 
@@ -17,12 +19,13 @@ export class GitHubRepoRead extends Construct {
   constructor(scope: Construct, id: string, props: GitHubRepoReadProps) {
     super(scope, id);
 
-    const handler = new NodejsFunction(this, "GitHubRepoReadHandler", {
-      memorySize: props.memoryAndTimeout.memorySize,
+    const handler = new NodejsFunction(this, "Handler", {
+      memorySize: 128,
       timeout: props.memoryAndTimeout.timeout,
       runtime: Runtime.NODEJS_14_X,
       handler: "handler",
-      entry: Code.fromAsset("lambda").path + "/github-repo-read.ts",
+      entry:
+        Code.fromAsset("lambda").path + "/github-repo-read-function.ts",
       bundling: {
         minify: true,
         externalModules: ["aws-sdk"],
@@ -34,12 +37,13 @@ export class GitHubRepoRead extends Construct {
         GITHUB_PAT: props.gitHubPatSecret.secretValue
           .unsafeUnwrap()
           .toString(),
+        TABLE_NAME: props.gitHubRepoTable.tableName,
       },
     });
 
     props.gitHubRepoTable.grantReadData(handler);
 
-    new LambdaRestApi(this, "GitHubRepoReadEndpoint", {
+    new LambdaRestApi(this, "Endpoint", {
       handler: handler,
     });
   }

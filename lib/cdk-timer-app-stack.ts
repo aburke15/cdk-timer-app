@@ -10,8 +10,8 @@ import { GitHubRepoInsert } from "./github-repo-insert";
 import { GitHubRepoRead } from "./github-repo-read";
 
 const memoryAndTimeout = {
-  memorySize: 768,
-  timeout: Duration.minutes(2),
+  memorySize: 256,
+  timeout: Duration.minutes(3),
 } as const;
 
 export class CdkTimerAppStack extends Stack {
@@ -37,12 +37,12 @@ export class CdkTimerAppStack extends Stack {
       "GitHubPat"
     );
 
-    // new GitHubRepoInsert(this, "GitHubRepoInsert", {
-    //   memoryAndTimeout,
-    //   gitHubRepoTable,
-    //   gitHubUserSecret,
-    //   gitHubPatSecret,
-    // });
+    new GitHubRepoInsert(this, "GitHubRepoInsert", {
+      memoryAndTimeout,
+      gitHubRepoTable,
+      gitHubUserSecret,
+      gitHubPatSecret,
+    });
 
     new GitHubRepoRead(this, "GitHubRepoRead", {
       memoryAndTimeout,
