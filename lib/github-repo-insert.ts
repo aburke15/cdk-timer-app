@@ -18,7 +18,7 @@ export class GitHubRepoInsert extends Construct {
   constructor(scope: Construct, id: string, props: GitHubRepoInsertProps) {
     super(scope, id);
 
-    const eventRule = new Rule(this, "GitHubRepoInsertEventRule", {
+    const eventRule = new Rule(this, "EventRule", {
       schedule: Schedule.cron({
         minute: "*/5",
         hour: "*",
@@ -27,12 +27,13 @@ export class GitHubRepoInsert extends Construct {
       }),
     });
 
-    const handler = new NodejsFunction(this, "GitHubRepoInsertHandler", {
+    const handler = new NodejsFunction(this, "Handler", {
       memorySize: props.memoryAndTimeout.memorySize,
       timeout: props.memoryAndTimeout.timeout,
       runtime: Runtime.NODEJS_14_X,
       handler: "handler",
-      entry: Code.fromAsset("lambda").path + "/github-repo-insert.ts",
+      entry:
+        Code.fromAsset("lambda").path + "/github-repo-insert-function.ts",
       bundling: {
         minify: true,
         externalModules: ["aws-sdk"],

@@ -2,6 +2,7 @@ import AWS = require("aws-sdk");
 import { DynamoDB } from "aws-sdk";
 import { PutItemInput } from "aws-sdk/clients/dynamodb";
 import https = require("https");
+import { GitHubProject } from "../lib/utils/types";
 
 AWS.config.update({ region: "us-west-2" });
 
@@ -60,15 +61,6 @@ const insertProjectsIntoDynamoDB = (
     });
   });
 };
-
-interface GitHubProject {
-  id: string;
-  name: string;
-  createdAt: string;
-  description: string;
-  htmlUrl: string;
-  language: string;
-}
 
 const parseGitHubProjects = (repos: any[]) => {
   let count = 0;
