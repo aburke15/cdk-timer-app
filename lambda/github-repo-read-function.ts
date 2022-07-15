@@ -2,13 +2,31 @@ import AWS = require('aws-sdk');
 import { DynamoDB } from 'aws-sdk';
 import { ScanInput } from 'aws-sdk/clients/dynamodb';
 import { GitHubProject } from '../lib/utils/types';
+import { APIGatewayEvent } from 'aws-lambda';
 
 AWS.config.update({ region: 'us-west-2' });
 
 const apiVersion = { apiVersion: '2012-08-10' };
 let ddb = new DynamoDB(apiVersion);
 
-exports.handler = async (event: any) => {
+exports.handler = async (event: APIGatewayEvent) => {
+  const allowedOrigins = new Set<string>();
+  const origin = event.headers.Origin ?? 'N/A';
+  console.info('Origin', origin);
+
+  allowedOrigins.add('http://localhost:3000');
+  allowedOrigins.add('http://localhost:3000/');
+  allowedOrigins.add('https://www.aburke.tech');
+  allowedOrigins.add('https://www.aburke.tech/');
+  allowedOrigins.add('https://aburke.tech');
+  allowedOrigins.add('https://aburke.tech/');
+
+  let goodOrigin = false;
+
+  if (allowedOrigins.has(origin)) {
+    goodOrigin = true;
+  }
+
   const response = {
     statusCode: 200,
     headers: {
@@ -16,7 +34,7 @@ exports.handler = async (event: any) => {
         'Accept,Accept-Language,Content-Language,Content-Type,Authorization,x-correlation-id',
       'Access-Control-Expose-Headers': 'x-my-header-out',
       'Access-Control-Allow-Methods': 'GET',
-      'Access-Control-Allow-Origin': ['https://www.aburke.tech', 'http://localhost:3000'],
+      'Access-Control-Allow-Origin': goodOrigin ? origin : 'https://www.aburke.tech',
     } as const,
     body: {},
   };
