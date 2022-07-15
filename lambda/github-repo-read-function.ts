@@ -1,13 +1,44 @@
-import AWS = require("aws-sdk");
-import { DynamoDB } from "aws-sdk";
-import { ScanInput } from "aws-sdk/clients/dynamodb";
+import AWS = require('aws-sdk');
+import { DynamoDB } from 'aws-sdk';
+import { ScanInput } from 'aws-sdk/clients/dynamodb';
+import { GitHubProject } from '../lib/utils/types';
+import { APIGatewayEvent } from 'aws-lambda';
 
-AWS.config.update({ region: "us-west-2" });
+AWS.config.update({ region: 'us-west-2' });
 
-const apiVersion = { apiVersion: "2012-08-10" };
+const apiVersion = { apiVersion: '2012-08-10' };
 let ddb = new DynamoDB(apiVersion);
 
-exports.handler = async (event: any) => {
+exports.handler = async (event: APIGatewayEvent) => {
+  const allowedOrigins = new Set<string>();
+  const origin = event.headers.Origin ?? 'N/A';
+  console.info('Origin', origin);
+
+  allowedOrigins.add('http://localhost:3000');
+  allowedOrigins.add('http://localhost:3000/');
+  allowedOrigins.add('https://www.aburke.tech');
+  allowedOrigins.add('https://www.aburke.tech/');
+  allowedOrigins.add('https://aburke.tech');
+  allowedOrigins.add('https://aburke.tech/');
+
+  let goodOrigin = false;
+
+  if (allowedOrigins.has(origin)) {
+    goodOrigin = true;
+  }
+
+  const response = {
+    statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Headers':
+        'Accept,Accept-Language,Content-Language,Content-Type,Authorization,x-correlation-id',
+      'Access-Control-Expose-Headers': 'x-my-header-out',
+      'Access-Control-Allow-Methods': 'GET',
+      'Access-Control-Allow-Origin': goodOrigin ? origin : 'https://www.aburke.tech',
+    } as const,
+    body: {},
+  };
+
   try {
     if (!ddb) {
       ddb = new DynamoDB(apiVersion);
@@ -15,36 +46,49 @@ exports.handler = async (event: any) => {
 
     const data = await getProjectsFromDynamoDB(ddb);
     const responseStatusCode = data.$response.httpResponse.statusCode;
+
     if (responseStatusCode < 200 || responseStatusCode > 299) {
-      return {
-        statusCode: responseStatusCode,
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify(data.Items, null, 2),
-      };
+      response.statusCode = responseStatusCode;
+      response.body = JSON.stringify(data.Items, null, 2);
     }
 
-    return {
-      statusCode: 200,
-      headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify(data.Items, null, 2),
-    };
-  } catch (error) {
-    console.error("Error occurred in GitHubRepoRead Lambda:", error);
+    const projects = parseGitHubProjects(data?.Items);
+    response.body = JSON.stringify(projects, null, 2);
 
-    return {
-      statusCode: 400,
-      headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify(error, null, 2),
-    };
+    return response;
+  } catch (error) {
+    console.error('Error occurred in GitHubRepoRead Lambda:', error);
+    response.statusCode = 400;
+    response.body = JSON.stringify(error, null, 2);
+
+    return response;
   }
 };
 
-const parseGitHubProjects = (itemList: DynamoDB.ItemList) => {
-  itemList.forEach((item) => {});
+const parseGitHubProjects = (itemList?: DynamoDB.ItemList): GitHubProject[] => {
+  const projects: GitHubProject[] = [];
+  if (itemList === undefined) {
+    return projects;
+  }
+
+  itemList.forEach((item) => {
+    const project: GitHubProject = {
+      id: item.id.S,
+      name: item.name.S,
+      createdAt: item.createdAt.S,
+      description: item.description.S,
+      htmlUrl: item.htmlUrl.S,
+      language: item.language.S,
+    };
+
+    projects.push(project);
+  });
+
+  return projects;
 };
 
 const getProjectsFromDynamoDB = (ddb: DynamoDB) => {
-  const tableName = process.env.TABLE_NAME ?? "GitHubRepoTable";
+  const tableName = process.env.TABLE_NAME ?? 'GitHubRepoTable';
   const params: ScanInput = {
     TableName: tableName,
   };

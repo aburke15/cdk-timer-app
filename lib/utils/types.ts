@@ -6,10 +6,10 @@ export interface MemoryAndTimout {
 }
 
 export interface GitHubProject {
-  id: string;
-  name: string;
-  createdAt: string;
-  description: string;
-  htmlUrl: string;
-  language: string;
+  id: string | undefined;
+  name: string | undefined;
+  createdAt: string | undefined;
+  description: string | undefined;
+  htmlUrl: string | undefined;
+  language: string | undefined;
 }
