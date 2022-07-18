@@ -34,8 +34,6 @@ export class CdkTimerAppStack extends Stack {
     new GitHubRepoRead(this, 'GitHubRepoRead', {
       memoryAndTimeout,
       gitHubRepoTable,
-      gitHubUserSecret,
-      gitHubPatSecret,
     });
   }
 }
