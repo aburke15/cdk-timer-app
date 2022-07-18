@@ -1,8 +1,7 @@
 import AWS = require('aws-sdk');
 import { DynamoDB } from 'aws-sdk';
-import { ScanInput } from 'aws-sdk/clients/dynamodb';
-import { GitHubProject } from '../lib/utils/types';
 import { APIGatewayEvent } from 'aws-lambda';
+import { getProjectsFromDynamoDB, parseGitHubProjectsFromDynamoDB } from '../lib/services/dynamo-db-service';
 
 AWS.config.update({ region: 'us-west-2' });
 
@@ -52,7 +51,7 @@ exports.handler = async (event: APIGatewayEvent) => {
       response.body = JSON.stringify(data.Items, null, 2);
     }
 
-    const projects = parseGitHubProjects(data?.Items);
+    const projects = parseGitHubProjectsFromDynamoDB(data?.Items);
     response.body = JSON.stringify(projects, null, 2);
 
     return response;
@@ -63,35 +62,4 @@ exports.handler = async (event: APIGatewayEvent) => {
 
     return response;
   }
-};
-
-const parseGitHubProjects = (itemList?: DynamoDB.ItemList): GitHubProject[] => {
-  const projects: GitHubProject[] = [];
-  if (itemList === undefined) {
-    return projects;
-  }
-
-  itemList.forEach((item) => {
-    const project: GitHubProject = {
-      id: item.id.S,
-      name: item.name.S,
-      createdAt: item.createdAt.S,
-      description: item.description.S,
-      htmlUrl: item.htmlUrl.S,
-      language: item.language.S,
-    };
-
-    projects.push(project);
-  });
-
-  return projects;
-};
-
-const getProjectsFromDynamoDB = (ddb: DynamoDB) => {
-  const tableName = process.env.TABLE_NAME ?? 'GitHubRepoTable';
-  const params: ScanInput = {
-    TableName: tableName,
-  };
-
-  return ddb.scan(params).promise();
 };
