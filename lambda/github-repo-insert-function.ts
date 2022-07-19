@@ -2,13 +2,14 @@ import AWS = require('aws-sdk');
 import { DynamoDB } from 'aws-sdk';
 import { insertProjectsIntoDynamoDB } from '../lib/services/dynamo-db-service';
 import { getGitHubUserRepos, parseGitHubReposIntoProjects } from '../lib/services/github-service';
+import { APIGatewayEvent } from 'aws-lambda';
 
 AWS.config.update({ region: 'us-west-2' });
 
 const apiVersion = { apiVersion: '2012-08-10' };
 let ddb = new DynamoDB(apiVersion);
 
-exports.handler = async (event: any) => {
+exports.handler = async (event: APIGatewayEvent) => {
   try {
     if (!ddb) {
       ddb = new DynamoDB(apiVersion);
