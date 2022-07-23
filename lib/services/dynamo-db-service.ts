@@ -41,6 +41,27 @@ export const getProjectsFromDynamoDB = (ddb: DynamoDB) => {
   return ddb.scan(params).promise();
 };
 
+export const deleteProjectsFromDynamoDB = async (ddb: DynamoDB, data: DynamoDB.ScanOutput): Promise<void> => {
+  const tableName: string = process.env.TABLE_NAME!;
+  const items = data.Items?.map((item) => {
+    return ddb
+      .deleteItem({
+        TableName: tableName,
+        Key: {
+          id: {
+            S: item.id.S,
+          },
+          createdAt: {
+            S: item.createdAt.S,
+          },
+        },
+      })
+      .promise();
+  });
+
+  await Promise.all(items!);
+};
+
 export const parseGitHubProjectsFromDynamoDB = (itemList?: DynamoDB.ItemList): GitHubProject[] => {
   const projects: GitHubProject[] = [];
   if (itemList === undefined) {
