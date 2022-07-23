@@ -2,7 +2,7 @@ import { Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
-import { GitHubRepoInsert } from './github-repo-insert';
+import { GitHubRepo } from './github-repo';
 import { GitHubRepoRead } from './github-repo-read';
 
 const memoryAndTimeout = {
@@ -24,7 +24,7 @@ export class CdkTimerAppStack extends Stack {
     const gitHubUserSecret = Secret.fromSecretNameV2(this, 'GitHubUserSecret', 'GitHubUser');
     const gitHubPatSecret = Secret.fromSecretNameV2(this, 'GitHubPatSecret', 'GitHubPat');
 
-    new GitHubRepoInsert(this, 'GitHubRepoInsert', {
+    new GitHubRepo(this, 'GitHubRepo', {
       memoryAndTimeout,
       gitHubRepoTable,
       gitHubUserSecret,
