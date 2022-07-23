@@ -32,13 +32,34 @@ export const insertProjectsIntoDynamoDB = async (ddb: DynamoDB, projects: GitHub
   return count;
 };
 
-export const getProjectsFromDynamoDB = (ddb: DynamoDB | DynamoDB.DocumentClient) => {
+export const getProjectsFromDynamoDB = (ddb: DynamoDB) => {
   const tableName = process.env.TABLE_NAME ?? 'GitHubRepoTable';
   const params: ScanInput = {
     TableName: tableName,
   };
 
   return ddb.scan(params).promise();
+};
+
+export const deleteProjectsFromDynamoDB = async (ddb: DynamoDB, data: DynamoDB.ScanOutput): Promise<void> => {
+  const tableName: string = process.env.TABLE_NAME!;
+  const items = data.Items?.map((item) => {
+    return ddb
+      .deleteItem({
+        TableName: tableName,
+        Key: {
+          id: {
+            S: item.id.S,
+          },
+          createdAt: {
+            S: item.createdAt.S,
+          },
+        },
+      })
+      .promise();
+  });
+
+  await Promise.all(items!);
 };
 
 export const parseGitHubProjectsFromDynamoDB = (itemList?: DynamoDB.ItemList): GitHubProject[] => {
