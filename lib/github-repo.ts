@@ -63,7 +63,7 @@ export class GitHubRepo extends Construct {
     insertHandler.grantInvoke(deleteHandler);
     eventRule.addTarget(new LambdaFunction(deleteHandler));
 
-    props.gitHubRepoTable.grantWriteData(deleteHandler);
+    props.gitHubRepoTable.grantReadWriteData(deleteHandler);
     props.gitHubRepoTable.grantWriteData(insertHandler);
   }
 }

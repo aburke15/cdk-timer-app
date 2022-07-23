@@ -32,7 +32,7 @@ export const insertProjectsIntoDynamoDB = async (ddb: DynamoDB, projects: GitHub
   return count;
 };
 
-export const getProjectsFromDynamoDB = (ddb: DynamoDB) => {
+export const getProjectsFromDynamoDB = (ddb: DynamoDB | DynamoDB.DocumentClient) => {
   const tableName = process.env.TABLE_NAME ?? 'GitHubRepoTable';
   const params: ScanInput = {
     TableName: tableName,
