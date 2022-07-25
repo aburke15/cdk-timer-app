@@ -4,7 +4,7 @@ import { GitHubProject } from '../utils/types';
 
 export const insertProjectsIntoDynamoDB = async (ddb: DynamoDB, projects: GitHubProject[]): Promise<number> => {
   let count = 0;
-  const tableName = process.env.TABLE_NAME ?? 'GitHubRepoTable';
+  const tableName = process.env.TABLE_NAME!;
 
   const items = projects.map((project) => {
     count++;
@@ -48,18 +48,18 @@ export const deleteProjectsFromDynamoDB = async (ddb: DynamoDB, data: DynamoDB.S
       .deleteItem({
         TableName: tableName,
         Key: {
-          id: {
-            S: item.id.S,
-          },
-          createdAt: {
-            S: item.createdAt.S,
-          },
+          id: { S: item.id.S },
+          createdAt: { S: item.createdAt.S },
         },
       })
       .promise();
   });
 
-  await Promise.all(items!);
+  try {
+    await Promise.all(items!);
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 export const parseGitHubProjectsFromDynamoDB = (itemList?: DynamoDB.ItemList): GitHubProject[] => {

@@ -9,14 +9,14 @@ let ddb = new AWS.DynamoDB(apiVersion);
 let lambda = new AWS.Lambda();
 
 exports.handler = async (event: APIGatewayEvent) => {
-  if (!ddb) {
-    ddb = new AWS.DynamoDB(apiVersion);
-  }
-  if (!lambda) {
-    lambda = new AWS.Lambda();
-  }
-
   try {
+    if (!ddb) {
+      ddb = new AWS.DynamoDB(apiVersion);
+    }
+    if (!lambda) {
+      lambda = new AWS.Lambda();
+    }
+
     const functionName: string = process.env.DOWNSTREAM_FUNCTION_NAME!;
 
     const data = await getProjectsFromDynamoDB(ddb);
