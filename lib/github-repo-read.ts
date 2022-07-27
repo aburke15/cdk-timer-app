@@ -14,7 +14,7 @@ export class GitHubRepoRead extends Construct {
   constructor(scope: Construct, id: string, props: GitHubRepoReadProps) {
     super(scope, id);
 
-    const handler = new NodejsFunction(this, 'Handler', {
+    const gitHubRepoReadHandler = new NodejsFunction(this, 'Handler', {
       memorySize: 256,
       timeout: props.memoryAndTimeout.timeout,
       runtime: Runtime.NODEJS_14_X,
@@ -29,10 +29,19 @@ export class GitHubRepoRead extends Construct {
       },
     });
 
-    props.gitHubRepoTable.grantReadData(handler);
+    props.gitHubRepoTable.grantReadData(gitHubRepoReadHandler);
 
-    new LambdaRestApi(this, 'Api', {
-      handler: handler,
+    const api = new LambdaRestApi(this, 'Api', {
+      handler: gitHubRepoReadHandler,
+      proxy: false,
+    });
+
+    const projects = api.root.addResource('projects');
+
+    projects.addMethod('GET');
+    projects.addCorsPreflight({
+      allowOrigins: ['*'],
+      allowMethods: ['GET'],
     });
   }
 }
