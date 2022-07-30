@@ -1,14 +1,14 @@
-import { Construct, Node } from 'constructs';
+import { Construct } from 'constructs';
 import { Code, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { MemoryAndTimout } from './utils/types';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import { ISecret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as Types from './utils/types';
 
-export interface GitHubRepoProps {
-  memoryAndTimeout: MemoryAndTimout;
+interface GitHubRepoProps {
+  memoryAndTimeout: Types.MemoryAndTimoutOptions;
   gitHubRepoTable: Table;
   gitHubUserSecret: ISecret;
   gitHubPatSecret: ISecret;
@@ -31,12 +31,9 @@ export class GitHubRepo extends Construct {
       memorySize: props.memoryAndTimeout.memorySize,
       timeout: props.memoryAndTimeout.timeout,
       runtime: Runtime.NODEJS_14_X,
-      handler: 'handler',
-      entry: Code.fromAsset('lambda').path + '/github-repo-insert-function.ts',
-      bundling: {
-        minify: true,
-        externalModules: ['aws-sdk'],
-      },
+      handler: Types.handlerName,
+      entry: Code.fromAsset(Types.directory).path + '/github-repo-insert-function.ts',
+      bundling: Types.bundling,
       environment: {
         GITHUB_USER: props.gitHubUserSecret.secretValue.unsafeUnwrap().toString(),
         GITHUB_PAT: props.gitHubPatSecret.secretValue.unsafeUnwrap().toString(),
@@ -48,12 +45,9 @@ export class GitHubRepo extends Construct {
       memorySize: props.memoryAndTimeout.memorySize,
       timeout: props.memoryAndTimeout.timeout,
       runtime: Runtime.NODEJS_14_X,
-      handler: 'handler',
-      entry: Code.fromAsset('lambda').path + '/github-repo-delete-function.ts',
-      bundling: {
-        minify: true,
-        externalModules: ['aws-sdk'],
-      },
+      handler: Types.handlerName,
+      entry: Code.fromAsset(Types.directory).path + '/github-repo-delete-function.ts',
+      bundling: Types.bundling,
       environment: {
         TABLE_NAME: props.gitHubRepoTable.tableName,
         DOWNSTREAM_FUNCTION_NAME: insertHandler.functionName,

@@ -1,9 +1,4 @@
-import { Duration } from "aws-cdk-lib";
-
-export interface MemoryAndTimout {
-  memorySize: number;
-  timeout: Duration;
-}
+import { Duration } from 'aws-cdk-lib';
 
 export interface GitHubProject {
   id: string | undefined;
@@ -13,3 +8,21 @@ export interface GitHubProject {
   htmlUrl: string | undefined;
   language: string | undefined;
 }
+
+export type MemoryAndTimoutOptions = {
+  memorySize: number;
+  timeout: Duration;
+};
+
+export type BundlingOptions = {
+  readonly externalModules: string[];
+  readonly minify: boolean;
+};
+
+export const directory: string = 'lambda';
+export const handlerName: string = 'handler';
+
+export const bundling: BundlingOptions = {
+  externalModules: ['aws-sdk', 'aws-lambda'],
+  minify: true,
+};
