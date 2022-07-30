@@ -1,20 +1,20 @@
-import { DomainName, LambdaRestApi } from 'aws-cdk-lib/aws-apigateway';
+import { LambdaRestApi } from 'aws-cdk-lib/aws-apigateway';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Code, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { ApiGateway } from 'aws-cdk-lib/aws-route53-targets';
 import { Construct } from 'constructs';
-import { MemoryAndTimout } from './utils/types';
+import * as Types from './utils/types';
 
-export interface GitHubRepoReadProps {
-  memoryAndTimeout: MemoryAndTimout;
+interface GitHubRepoReadProps {
+  memoryAndTimeout: Types.MemoryAndTimoutOptions;
   gitHubRepoTable: Table;
   certificate: ICertificate;
 }
 
 export class GitHubRepoRead extends Construct {
-  public readonly Api: LambdaRestApi;
+  public readonly restApi: LambdaRestApi;
+
   constructor(scope: Construct, id: string, props: GitHubRepoReadProps) {
     super(scope, id);
 
@@ -22,12 +22,9 @@ export class GitHubRepoRead extends Construct {
       memorySize: 256,
       timeout: props.memoryAndTimeout.timeout,
       runtime: Runtime.NODEJS_14_X,
-      handler: 'handler',
-      entry: Code.fromAsset('lambda').path + '/github-repo-read-function.ts',
-      bundling: {
-        minify: true,
-        externalModules: ['aws-sdk'],
-      },
+      handler: Types.handlerName,
+      entry: Code.fromAsset(Types.directory).path + '/github-repo-read-function.ts',
+      bundling: Types.bundling,
       environment: {
         TABLE_NAME: props.gitHubRepoTable.tableName,
       },
@@ -35,24 +32,22 @@ export class GitHubRepoRead extends Construct {
 
     props.gitHubRepoTable.grantReadData(gitHubRepoReadHandler);
 
-    const api = new LambdaRestApi(this, 'Api', {
+    this.restApi = new LambdaRestApi(this, 'Api', {
       handler: gitHubRepoReadHandler,
       proxy: false,
     });
 
-    api.addDomainName('ApiDomain', {
+    this.restApi.addDomainName('ApiDomain', {
       domainName: 'proj.aburke.tech',
       certificate: props.certificate,
     });
 
-    const projects = api.root.addResource('projects');
+    const projects = this.restApi.root.addResource('projects');
 
     projects.addMethod('GET');
     projects.addCorsPreflight({
       allowOrigins: ['*'],
       allowMethods: ['GET'],
     });
-
-    this.Api = api;
   }
 }

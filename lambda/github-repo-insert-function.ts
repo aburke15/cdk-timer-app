@@ -1,18 +1,18 @@
-import AWS = require('aws-sdk');
-import { DynamoDB } from 'aws-sdk';
+import * as AWS from 'aws-sdk';
+import { APIGatewayEvent } from 'aws-lambda';
 import { insertProjectsIntoDynamoDB } from '../lib/services/dynamo-db-service';
 import { getGitHubUserRepos, parseGitHubReposIntoProjects } from '../lib/services/github-service';
-import { APIGatewayEvent } from 'aws-lambda';
+import { apiVersion, region } from './config';
 
-AWS.config.update({ region: 'us-west-2' });
-
-const apiVersion = { apiVersion: '2012-08-10' };
-let ddb = new DynamoDB(apiVersion);
+AWS.config.update(region);
+let ddb = new AWS.DynamoDB(apiVersion);
 
 exports.handler = async (event: APIGatewayEvent) => {
+  console.log(JSON.stringify(event, null, 2));
+
   try {
     if (!ddb) {
-      ddb = new DynamoDB(apiVersion);
+      ddb = new AWS.DynamoDB(apiVersion);
     }
 
     const repos = await getGitHubUserRepos();
@@ -21,6 +21,7 @@ exports.handler = async (event: APIGatewayEvent) => {
 
     console.info(`Inserted ${projectCount} projects into DynamoDB`);
   } catch (error) {
-    console.error('Error occurred in GitHubRepoInsert Lambda:', JSON.stringify(error, null, 2));
+    console.error(error);
+    throw error;
   }
 };

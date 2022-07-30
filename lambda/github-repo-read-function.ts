@@ -1,11 +1,12 @@
 import AWS = require('aws-sdk');
-import { DynamoDB } from 'aws-sdk';
 import { APIGatewayEvent } from 'aws-lambda';
 import { getProjectsFromDynamoDB, parseGitHubProjectsFromDynamoDB } from '../lib/services/dynamo-db-service';
+import { apiVersion, region } from './config';
+import { FunctionResponse } from './responses';
 
-AWS.config.update({ region: 'us-west-2' });
+AWS.config.update(region);
 
-const apiVersion = { apiVersion: '2012-08-10' };
+let ddb = new AWS.DynamoDB(apiVersion);
 
 const headers = {
   'Access-Control-Allow-Headers': 'Content-Type',
@@ -13,18 +14,18 @@ const headers = {
   'Access-Control-Allow-Methods': 'GET',
 } as const;
 
-const response = {
+const response: FunctionResponse<string> = {
   statusCode: 200,
   headers: headers,
-  body: {},
+  body: '',
 };
 
-let ddb = new DynamoDB(apiVersion);
-
 exports.handler = async (event: APIGatewayEvent) => {
+  console.info(JSON.stringify(event, null, 2));
+
   try {
     if (!ddb) {
-      ddb = new DynamoDB(apiVersion);
+      ddb = new AWS.DynamoDB(apiVersion);
     }
 
     const data = await getProjectsFromDynamoDB(ddb);
@@ -40,10 +41,7 @@ exports.handler = async (event: APIGatewayEvent) => {
 
     return response;
   } catch (error) {
-    console.error('Error occurred in GitHubRepoRead Lambda:', error);
-    response.statusCode = 400;
-    response.body = JSON.stringify(error, null, 2);
-
-    return response;
+    console.error(error);
+    throw error;
   }
 };
