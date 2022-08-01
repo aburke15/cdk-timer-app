@@ -1,8 +1,8 @@
 import AWS = require('aws-sdk');
 import { APIGatewayEvent } from 'aws-lambda';
 import { getProjectsFromDynamoDB, parseGitHubProjectsFromDynamoDB } from '../lib/services/dynamo-db-service';
-import { apiVersion, region } from './config';
-import { FunctionResponse } from './responses';
+import { apiVersion, region } from '../lib/utils/config';
+import { FunctionResponse } from '../lib/models/responses';
 
 AWS.config.update(region);
 

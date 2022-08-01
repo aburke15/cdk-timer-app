@@ -9,7 +9,6 @@ import * as Types from './utils/types';
 interface GitHubRepoReadProps {
   memoryAndTimeout: Types.MemoryAndTimoutOptions;
   gitHubRepoTable: Table;
-  certificate: ICertificate;
 }
 
 export class GitHubRepoRead extends Construct {
@@ -37,10 +36,10 @@ export class GitHubRepoRead extends Construct {
       proxy: false,
     });
 
-    this.restApi.addDomainName('ApiDomain', {
-      domainName: 'proj.aburke.tech',
-      certificate: props.certificate,
-    });
+    // this.restApi.addDomainName('ApiDomain', {
+    //   domainName: 'proj.aburke.tech',
+    //   certificate: props.certificate,
+    // });
 
     const projects = this.restApi.root.addResource('projects');
 
