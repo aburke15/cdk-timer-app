@@ -2,7 +2,7 @@ import * as AWS from 'aws-sdk';
 import { APIGatewayEvent } from 'aws-lambda';
 import { insertProjectsIntoDynamoDB } from '../lib/services/dynamo-db-service';
 import { getGitHubUserRepos, parseGitHubReposIntoProjects } from '../lib/services/github-service';
-import { apiVersion, region } from './config';
+import { apiVersion, region } from '../lib/utils/config';
 
 AWS.config.update(region);
 let ddb = new AWS.DynamoDB(apiVersion);

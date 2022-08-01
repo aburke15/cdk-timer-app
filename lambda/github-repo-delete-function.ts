@@ -1,7 +1,7 @@
 import AWS = require('aws-sdk');
 import { APIGatewayEvent } from 'aws-lambda';
 import { deleteProjectsFromDynamoDB, getProjectsFromDynamoDB } from '../lib/services/dynamo-db-service';
-import { apiVersion, region } from './config';
+import { apiVersion, region } from '../lib/utils/config';
 
 AWS.config.update(region);
 
