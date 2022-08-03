@@ -1,8 +1,10 @@
+import { SecretValue } from 'aws-cdk-lib';
 import { LambdaRestApi } from 'aws-cdk-lib/aws-apigateway';
-import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Code, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { ISecret, Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 import * as Types from './utils/types';
 
@@ -36,10 +38,10 @@ export class GitHubRepoRead extends Construct {
       proxy: false,
     });
 
-    // this.restApi.addDomainName('ApiDomain', {
-    //   domainName: 'proj.aburke.tech',
-    //   certificate: props.certificate,
-    // });
+    new Secret(this, 'GitHubRepoApiIdSecret', {
+      secretName: 'GitHubRepoApiId',
+      secretStringValue: new SecretValue(this.restApi.restApiId),
+    });
 
     const projects = this.restApi.root.addResource('projects');
 
