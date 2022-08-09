@@ -31,7 +31,7 @@ export class GitHubRepo extends Construct {
       memorySize: props.memoryAndTimeout.memorySize,
       timeout: props.memoryAndTimeout.timeout,
       runtime: Runtime.NODEJS_14_X,
-      handler: Types.handlerName,
+      handler: Types.handler,
       entry: Code.fromAsset(Types.directory).path + '/github-repo-insert-function.ts',
       bundling: Types.bundling,
       environment: {
@@ -45,7 +45,7 @@ export class GitHubRepo extends Construct {
       memorySize: props.memoryAndTimeout.memorySize,
       timeout: props.memoryAndTimeout.timeout,
       runtime: Runtime.NODEJS_14_X,
-      handler: Types.handlerName,
+      handler: Types.handler,
       entry: Code.fromAsset(Types.directory).path + '/github-repo-delete-function.ts',
       bundling: Types.bundling,
       environment: {

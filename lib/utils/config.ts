@@ -1,10 +1,10 @@
-export type AwsRegion = {
+export interface AwsRegion {
   readonly region: string;
-};
+}
 
-export type AwsApiVersion = {
+export interface AwsApiVersion {
   readonly apiVersion: string;
-};
+}
 
 export const region: AwsRegion = {
   region: 'us-west-2',
