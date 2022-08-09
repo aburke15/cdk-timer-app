@@ -9,20 +9,21 @@ export interface GitHubProject {
   language: string | undefined;
 }
 
-export type MemoryAndTimoutOptions = {
+export interface MemoryAndTimoutOptions {
   memorySize: number;
   timeout: Duration;
-};
+}
 
-export type BundlingOptions = {
+export interface BundlingOptions {
   readonly externalModules: string[];
   readonly minify: boolean;
-};
-
-export const directory: string = 'lambda';
-export const handlerName: string = 'handler';
+}
 
 export const bundling: BundlingOptions = {
   externalModules: ['aws-sdk', 'aws-lambda'],
   minify: true,
 };
+
+export const directory: string = 'lambda';
+export const handler: string = 'handler';
+export const gitHubRepo: string = 'GitHubRepo';

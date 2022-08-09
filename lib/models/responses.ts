@@ -1,5 +1,5 @@
-export type FunctionResponse<TResponse> = {
+export interface FunctionResponse<TResponse> {
   statusCode: number;
   headers: {};
   body: TResponse;
-};
+}
