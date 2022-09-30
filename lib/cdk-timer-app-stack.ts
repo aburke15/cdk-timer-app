@@ -1,4 +1,5 @@
 import * as CDK from 'aws-cdk-lib';
+import { SecretValue } from 'aws-cdk-lib';
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
 import * as Route53 from 'aws-cdk-lib/aws-route53';
@@ -27,6 +28,12 @@ export class CdkTimerAppStack extends CDK.Stack {
       sortKey: { name: 'createdAt', type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
       removalPolicy: CDK.RemovalPolicy.DESTROY,
+    });
+
+    // put the table arn in an aws secret to be referenced elsewhere
+    new Secret(this, 'GitHubRepoTableArnSecret', {
+      secretName: 'GitHubRepoTableArn',
+      secretStringValue: new SecretValue(gitHubRepoTable.tableArn),
     });
 
     const gitHubUserSecret = Secret.fromSecretNameV2(this, 'GitHubUserSecret', 'GitHubUser');
