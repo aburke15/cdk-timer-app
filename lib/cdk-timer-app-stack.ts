@@ -36,6 +36,11 @@ export class CdkTimerAppStack extends CDK.Stack {
       secretStringValue: new SecretValue(gitHubRepoTable.tableArn),
     });
 
+    new Secret(this, 'GitHubRepoTableNameSecret', {
+      secretName: 'GitHubRepoTableName',
+      secretStringValue: new SecretValue(gitHubRepoTable.tableName),
+    });
+
     const gitHubUserSecret = Secret.fromSecretNameV2(this, 'GitHubUserSecret', 'GitHubUser');
     const gitHubPatSecret = Secret.fromSecretNameV2(this, 'GitHubPatSecret', 'GitHubPat');
 
