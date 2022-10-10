@@ -11,7 +11,7 @@ interface GitHubRepoProps {
   memoryAndTimeout: Types.MemoryAndTimoutOptions;
   gitHubRepoTable: Table;
   gitHubUserSecret: ISecret;
-  gitHubPatSecret: ISecret;
+  gitHubTokenSecret: ISecret;
 }
 
 export class GitHubRepo extends Construct {
@@ -36,7 +36,7 @@ export class GitHubRepo extends Construct {
       bundling: Types.bundling,
       environment: {
         GITHUB_USER: props.gitHubUserSecret.secretValue.unsafeUnwrap().toString(),
-        GITHUB_PAT: props.gitHubPatSecret.secretValue.unsafeUnwrap().toString(),
+        GITHUB_PAT: props.gitHubTokenSecret.secretValue.unsafeUnwrap().toString(),
         TABLE_NAME: props.gitHubRepoTable.tableName,
       },
     });

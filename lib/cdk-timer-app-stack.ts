@@ -42,13 +42,13 @@ export class CdkTimerAppStack extends CDK.Stack {
     });
 
     const gitHubUserSecret = Secret.fromSecretNameV2(this, 'GitHubUserSecret', 'GitHubUser');
-    const gitHubPatSecret = Secret.fromSecretNameV2(this, 'GitHubTokenSecret', 'GitHubToken');
+    const gitHubTokenSecret = Secret.fromSecretNameV2(this, 'GitHubTokenSecret', 'GitHubToken');
 
     new GitHubRepo(this, 'GitHubRepo', {
       memoryAndTimeout,
       gitHubRepoTable,
       gitHubUserSecret,
-      gitHubPatSecret,
+      gitHubTokenSecret,
     });
 
     const gitHubRepoRead = new GitHubRepoRead(this, 'GitHubRepoRead', {
